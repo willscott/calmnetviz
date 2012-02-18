@@ -19,9 +19,20 @@
 			<src path="src" />
 			<classpath refid="lib.path" />
 		</javac>
+		<antcall target="unixpcap" />
 	</target>
+		<target name="unixpcap" if="${isUnix}">
+			<antcall target="unixpcap32" />
+			<antcall target="unixpcap64" />
+		</target>
+			<target name="unixpcap32" unless="${is64Bit}">
+				<copy file="lib/unix/libjpcap.32.so" tofile="lib/libjpcap.so" />
+			</target>
+			<target name="unixpcap64" if="${is64Bit}">
+				<copy file="lib/unix/libjpcap.64.so" tofile="lib/libjpcap.so" />
+			</target>
 
-	<target name="run">
+	<target name="run" depends="build">
 		<java classname="com.p2pbr.netviz.NetViz" failonerror="true" fork="true">
 			<classpath refid="lib.path" />
 			<classpath>
