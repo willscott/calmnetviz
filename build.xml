@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<project default="run" name="CalmNetViz" basedir=".">
+	<condition property="isUnix">
+		<os family="unix" />
+	</condition>
+	<condition property="is64Bit">
+		<equals arg1="${sun.arch.data.model}" arg2="64" />
+	</condition>
+	<property name="nativePcap" value="-Djava.library.path=lib/" />
+
+	<path id="lib.path">
+		<pathelement location="lib/core.jar" />
+		<pathelement location="lib/carnivore.jar" />
+		<pathelement location="lib/rsglib.jar" />
+	</path>
+
+	<target name="build">
+		<javac destdir="${basedir}/target/classes" nowarn="yes" source="1.6" target="1.6" includeAntRuntime="no">
+			<src path="src" />
+			<classpath refid="lib.path" />
+		</javac>
+	</target>
+
+	<target name="run">
+		<java classname="com.p2pbr.netviz.NetViz" failonerror="true" fork="true">
+			<classpath refid="lib.path" />
+			<classpath>
+				<pathelement location="${basedir}/target/classes" />
+			</classpath>
+			<jvmarg value="${nativePcap}" />
+		</java>
+	</target>
+</project>
