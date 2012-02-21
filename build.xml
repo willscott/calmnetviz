@@ -33,7 +33,8 @@
 			</target>
 
 	<target name="run" depends="build">
-		<java classname="com.p2pbr.netviz.NetViz" failonerror="true" fork="true">
+		<java classname="com.p2pbr.netviz.Runner" failonerror="true" fork="true">
+			<arg value="${target}" />
 			<classpath refid="lib.path" />
 			<classpath>
 				<pathelement location="${basedir}/target/classes" />

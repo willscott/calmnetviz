@@ -23,7 +23,7 @@ public class NetViz extends PApplet {
 		ellipseMode(CENTER);
 		background(0);
 	  
-		Log.setDebug(true); // Uncomment this for verbose mode
+		//Log.setDebug(true); // Uncomment this for verbose mode
 		c = new CarnivoreP5(this);
 	}
 
