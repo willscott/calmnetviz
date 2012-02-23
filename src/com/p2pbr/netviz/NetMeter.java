@@ -16,6 +16,7 @@ public class NetMeter extends PApplet {
 		public int bytes;
 	}
 	double knownWindow = 60; // reference 'max'
+	double MAX_CNT = 125000; // 1Mbps in bytes/s.
 	LinkedList<pkt> inWindow = new LinkedList<pkt>();
 	LinkedList<pkt> inNow = new LinkedList<pkt>();
 	int inTotal = 0;
@@ -75,12 +76,23 @@ public class NetMeter extends PApplet {
 				break;
 			}
 		}
+		double windowDuration = knownWindow;
+		if (inWindow.size() > 0) {
+			p = inWindow.getFirst();
+			windowDuration = (new Date().getTime() - p.time.getTime()) / 1000.0;
+		}
+		
+		float windowFraction = (float) (height * (windowTotal/windowDuration)/MAX_CNT);
+		background(255);
+		fill(102);
+		rectMode(CORNER);
+		rect(0, height - windowFraction, width, windowFraction);
+
 		
 		int x = width/2 - 200;
 		int y = 75;
-		background(255);
 		fill(0, 0, 0);
-		text("Awesome: " + inTotal + " vs " + (windowTotal/knownWindow), x, y);
+		text("Awesome: " + inTotal + " vs " + (windowTotal/windowDuration), x, y);
 	}
 
 	// Called each time a new packet arrives
