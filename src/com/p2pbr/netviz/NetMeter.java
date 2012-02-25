@@ -100,6 +100,13 @@ public class NetMeter extends PApplet {
 		  pkt pkt = new pkt();
 		  pkt.time = new Date();
 		  pkt.bytes = packet.data.length;
+		  if (inTotal + pkt.bytes > MAX_CNT)
+		  {
+			  pkt.bytes = (int) (MAX_CNT - inTotal);
+		  }
+		  if (pkt.bytes == 0) {
+			  return;
+		  }
 		  inWindow.add(pkt);
 		  inNow.add(pkt);
 		  inTotal += pkt.bytes;
