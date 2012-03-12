@@ -16,12 +16,14 @@ some non-trivial changes to support windows - most noticably in creating an
 appropriate carnivore jni binary.
 
 Prerequisites:
+
 * Sqlite3
 * Pcap
 * Java
 * Ant, Awk (for building)
 
 Building:
+
 > ant
 
 Running
