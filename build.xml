@@ -3,6 +3,9 @@
 	<condition property="isUnix">
 		<os family="unix" />
 	</condition>
+	<condition property="isMac">
+	    <os family="mac" />
+	</condition>
 	<condition property="is64Bit">
 		<equals arg1="${sun.arch.data.model}" arg2="64" />
 	</condition>
@@ -16,7 +19,7 @@
 	
 
     <target name="checkDB">
-      <available file="hosts.sql.gz" property="download.present" />
+      <available file="util/hosts.sql.gz" property="download.present" />
       <available file="hostip.sqlite3" property="db.present" />
     </target>
     <target name="downloadDB" depends="checkDB" unless="${download.present}">
@@ -32,7 +35,7 @@
 	  </exec>
 	  <delete file="util/hosts.sql" />
 	  <exec executable="sqlite3" input="sqlitehosts.sql">
-	    <arg value="hostip.sqlite3">
+	    <arg value="hostip.sqlite3" />
 	  </exec>
 	  <delete file="sqlitehosts.sql" />
 	</target>
@@ -43,6 +46,7 @@
 			<classpath refid="lib.path" />
 		</javac>
 		<antcall target="unixpcap" />
+		<antcall target="macpcap" />
 	</target>
 		<target name="unixpcap" if="${isUnix}">
 			<antcall target="unixpcap32" />
@@ -53,6 +57,17 @@
 			</target>
 			<target name="unixpcap64" if="${is64Bit}">
 				<copy file="lib/unix/libjpcap.64.so" tofile="lib/libjpcap.so" />
+			</target>
+		<target name="macpca" if="${isMac}">
+			<antcall target="macpcap32" />
+			<antcall target="macpcap64" />
+		</target>
+			<target name="macpcap32" unless="${is64Bit}">
+				<copy file="lib/mac/libjpcap.32.jnilib" tofile="lib/libjpcap.jnilib" />
+			</target>
+			<target name="macpcap64" if="${is64Bit}">
+			    <echo>Binary for your platform doesn't exist!</echo>
+				<!--<copy file="lib/mac/libjpcap.64.jnilib" tofile="lib/libjpcap.jnilib" />-->
 			</target>
 
 	<target name="run" depends="prepare">
