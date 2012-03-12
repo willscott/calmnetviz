@@ -70,8 +70,7 @@
 				<copy file="lib/mac/libjpcap.32.jnilib" tofile="lib/libjpcap.jnilib" />
 			</target>
 			<target name="macpcap64" if="${is64Bit}">
-			    <echo>Binary for your platform doesn't exist!</echo>
-				<!--<copy file="lib/mac/libjpcap.64.jnilib" tofile="lib/libjpcap.jnilib" />-->
+				<copy file="lib/mac/libjpcap.64.jnilib" tofile="lib/libjpcap.jnilib" />
 			</target>
 
 	<target name="run" depends="prepare">

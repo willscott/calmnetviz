@@ -443,7 +443,7 @@ public class NetViz extends PApplet {
       return latlon;
     }
     // Called each time a new packet arrives
-    synchronized void packetEvent(CarnivorePacket packet) {
+    public synchronized void packetEvent(CarnivorePacket packet) {
       pkt pkt = new pkt();
       pkt.time = new Date();
       pkt.ip = packet.senderAddress;
