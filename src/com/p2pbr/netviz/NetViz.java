@@ -3,9 +3,12 @@ package com.p2pbr.netviz;
 import processing.core.*;
 
 import de.bezier.data.sql.*;
-import java.util.Iterator;
-import java.util.Date;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import org.rsg.carnivore.*;
 import org.rsg.carnivore.net.*;
 import org.rsg.lib.Log;
@@ -15,7 +18,6 @@ public class NetViz extends PApplet {
 
     SQLite db;
     boolean dbConnected = false;
-    PrintWriter output;
     
     HashMap<String, Pin> pins = new HashMap<String, Pin>();
     HashSet<String> countries = new HashSet<String>();
@@ -190,9 +192,7 @@ public class NetViz extends PApplet {
       else {
         dbConnected = false; 
       }
-      
-      output = createWriter("uniqueIPs.txt");
-      
+            
       // load the map image
       mapImage = loadImage(mapFilename);
       
@@ -469,8 +469,6 @@ public class NetViz extends PApplet {
     
           p = new Pin(this, mapImage, lat, lon, country, city);
           pins.put(ip.toString(), p);
-          output.println(ip.toString());
-          output.flush();
         }
         p.addBytes(pkt.bytes);  
       }  
