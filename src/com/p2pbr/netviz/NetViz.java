@@ -58,6 +58,8 @@ public class NetViz extends PApplet {
     int lastBG[]  = new int[3];
     
     private class Pin {
+      PApplet parent;
+    
       public int state;
       public int animation;
       
@@ -86,7 +88,8 @@ public class NetViz extends PApplet {
       private int deadTimer = 1;
       private boolean pulseUp = true;
       
-      public Pin(PImage mapImage, float lat, float lon, String country, String city) {
+      public Pin(PApplet p, PImage mapImage, float lat, float lon, String country, String city) {
+        this.parent = p;
         this.mapImage = mapImage;
         this.x = map(lon, -180, 180, mapX, mapX+mapImage.width);
         this.y = map(lat, 90, -90, mapY, mapY+mapImage.height);
@@ -98,6 +101,7 @@ public class NetViz extends PApplet {
         this.state = STATE_ANIMATE;
         this.animation = 1;
       }
+
       private int pulseStep() {
         if (pulseUp) { pulse++; }
         else         { pulse--; }
@@ -105,6 +109,7 @@ public class NetViz extends PApplet {
         if (pulse <= PULSE_MAX * -1) { pulseUp = true; }
         return pulse;
       }
+
       public boolean drawSelf() {
         int rad = 8;
         if (bytes > 0) {
@@ -118,7 +123,7 @@ public class NetViz extends PApplet {
         if (state == STATE_STATIC) {
           //println("static, rad="+rad);
           if (bytes > 0) {
-            int variation = int(random(3));
+            int variation = (int)(parent.random(3));
             //println("bytes >0");
             fill(0x00, 0x00, 0x00, 0x00);
             stroke(0xff, 0x00, 0xff);
@@ -193,10 +198,10 @@ public class NetViz extends PApplet {
       
       // setup pins for local, loopback, autoconfig, broadcast.
       //public Pin(PImage mapImage, float lat, float lon, String country, String city) {
-      localPin = new Pin(mapImage, -105, -160, null, null);
-      broadcastPin = new Pin(mapImage, -105, -120, null, null);
-      loopbackPin = new Pin(mapImage, -105, -80, null, null);
-      autoconfigPin = new Pin(mapImage, -105, -40, null, null);
+      localPin = new Pin(this, mapImage, -105, -160, null, null);
+      broadcastPin = new Pin(this, mapImage, -105, -120, null, null);
+      loopbackPin = new Pin(this, mapImage, -105, -80, null, null);
+      autoconfigPin = new Pin(this, mapImage, -105, -40, null, null);
     
       // 
       size(WIDTH, HEIGHT);
@@ -270,8 +275,8 @@ public class NetViz extends PApplet {
       // draw new packets
       for (int i=0; i<this.newPackets/2; i++) {
         stroke(0xFF, 0xFF, 0xFF);
-        int x = int(random(WIDTH-1));
-        int y = int(random(mapImage.height, HEIGHT-1));
+        int x = (int)(random(WIDTH-1));
+        int y = (int)(random(mapImage.height, HEIGHT-1));
         point(x,y);
       }
       this.newPackets = this.newPackets/2;
@@ -299,7 +304,7 @@ public class NetViz extends PApplet {
       if (absFraction > 1) {
         absFraction = 1;   
       }
-      int r = int(Math.round(255 * absFraction));
+      int r = (int)(Math.round(255 * absFraction));
       if (r > 255) {
         r = 255; 
       }
@@ -462,7 +467,7 @@ public class NetViz extends PApplet {
           float lat = latlon[0];
           float lon = latlon[1];
     
-          p = new Pin(mapImage, lat, lon, country, city);
+          p = new Pin(this, mapImage, lat, lon, country, city);
           pins.put(ip.toString(), p);
           output.println(ip.toString());
           output.flush();
