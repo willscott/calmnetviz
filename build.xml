@@ -21,16 +21,16 @@
     </target>
     <target name="downloadDB" depends="checkDB" unless="${download.present}">
 	  <get src="http://db.hostip.info/mirror/hostip_current.sql.gz"
-	      dest="hosts.sql.gz" />
+	      dest="util/hosts.sql.gz" />
     </target>
     <target name="generateDB" depends="checkDB,downloadDB" unless="${db.present}">
       <echo>Generating Geolocation DB</echo>
-	  <gunzip src="hosts.sql.gz" />
+	  <gunzip src="util/hosts.sql.gz" />
 	  <exec executable="/bin/bash" output="sqlitehosts.sql">
 	    <arg value="mysql2sqlite.sh" />
-	    <arg value="hosts.sql" />
+	    <arg value="util/hosts.sql" />
 	  </exec>
-	  <delete file="hosts.sql" />
+	  <delete file="util/hosts.sql" />
 	  <exec executable="sqlite3" input="sqlitehosts.sql">
 	    <arg value="hostip.sqlite3">
 	  </exec>
