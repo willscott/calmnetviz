@@ -41,6 +41,8 @@
 	</target>
 
 	<target name="prepare" depends="generateDB">
+		<mkdir dir="target" />
+		<mkdir dir="target/classes" />
 		<javac destdir="${basedir}/target/classes" nowarn="yes" source="1.6" target="1.6" includeAntRuntime="no">
 			<src path="src" />
 			<classpath refid="lib.path" />
