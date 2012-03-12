@@ -13,8 +13,31 @@
 		<pathelement location="lib/carnivore.jar" />
 		<pathelement location="lib/rsglib.jar" />
 	</path>
+	
 
-	<target name="build">
+    <target name="checkDB">
+      <available file="hosts.sql.gz" property="download.present" />
+      <available file="hostip.sqlite3" property="db.present" />
+    </target>
+    <target name="downloadDB" depends="checkDB" unless="${download.present}">
+	  <get src="http://db.hostip.info/mirror/hostip_current.sql.gz"
+	      dest="hosts.sql.gz" />
+    </target>
+    <target name="generateDB" depends="checkDB,downloadDB" unless="${db.present}">
+      <echo>Generating Geolocation DB</echo>
+	  <gunzip src="hosts.sql.gz" />
+	  <exec executable="/bin/bash" output="sqlitehosts.sql">
+	    <arg value="mysql2sqlite.sh" />
+	    <arg value="hosts.sql" />
+	  </exec>
+	  <delete file="hosts.sql" />
+	  <exec executable="sqlite3" input="sqlitehosts.sql">
+	    <arg value="hostip.sqlite3">
+	  </exec>
+	  <delete file="sqlitehosts.sql" />
+	</target>
+
+	<target name="prepare" depends="generateDB">
 		<javac destdir="${basedir}/target/classes" nowarn="yes" source="1.6" target="1.6" includeAntRuntime="no">
 			<src path="src" />
 			<classpath refid="lib.path" />
@@ -32,7 +55,7 @@
 				<copy file="lib/unix/libjpcap.64.so" tofile="lib/libjpcap.so" />
 			</target>
 
-	<target name="run" depends="build">
+	<target name="run" depends="prepare">
 		<java classname="com.p2pbr.netviz.Runner" failonerror="true" fork="true">
 			<arg value="${target}" />
 			<classpath refid="lib.path" />
