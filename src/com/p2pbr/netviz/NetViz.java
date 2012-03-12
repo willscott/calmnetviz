@@ -35,8 +35,8 @@ public class NetViz extends PApplet {
     // CONSTANTS
     private final double WINDOW_SIZE = 15; // reference 'max'
     private final double MAX_CNT = 125000; // 1Mbps in bytes/s.
-    private final float WINDOW_WEIGHT = 0.55;
-    private final float MAX_BANDWIDTH = 100000000.0; 
+    private final double WINDOW_WEIGHT = 0.55;
+    private final double MAX_BANDWIDTH = 100000000.0; 
     private final int BINS = 5;
     private final int mapX = 0;
     private final int mapY = 0;
@@ -183,7 +183,7 @@ public class NetViz extends PApplet {
       public IPAddress ip;
     }
     
-    void setup() {
+    public void setup() {
       // connect to the database of geolocation data
       db = new SQLite(this, "hostip.sqlite3"); //open database file!
       if (db.connect()) {
@@ -220,7 +220,7 @@ public class NetViz extends PApplet {
       //textFont(font);
     }
     
-    void draw() {
+    public void draw() {
       // draw background color according to general traffic rates
       int bg[] = getBackgroundColorFromTrafficSpeed();
       int r = lastBG[0];

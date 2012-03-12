@@ -62,7 +62,7 @@
 			<target name="unixpcap64" if="${is64Bit}">
 				<copy file="lib/unix/libjpcap.64.so" tofile="lib/libjpcap.so" />
 			</target>
-		<target name="macpca" if="${isMac}">
+		<target name="macpcap" if="${isMac}">
 			<antcall target="macpcap32" />
 			<antcall target="macpcap64" />
 		</target>
