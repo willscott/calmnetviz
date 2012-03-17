@@ -9,7 +9,7 @@
 	<condition property="is64Bit">
 		<equals arg1="${sun.arch.data.model}" arg2="64" />
 	</condition>
-	<property name="nativePcap" value="-Djava.library.path=lib/" />
+	<property name="nativePcap" value="-Djava.library.path=lib" />
 
 	<path id="lib.path">
 		<pathelement location="lib/core.jar" />
@@ -52,7 +52,7 @@
 		<antcall target="unixpcap" />
 		<antcall target="macpcap" />
 	</target>
-		<target name="unixpcap" if="${isUnix}">
+		<target name="unixpcap" if="${isUnix}" unless="${isMac}">
 			<antcall target="unixpcap32" />
 			<antcall target="unixpcap64" />
 		</target>

@@ -9,6 +9,7 @@ public class Runner {
 			System.out.println("If you are running from ant, use -Dtarget=<name>");
 			return;
 		}
+	    System.loadLibrary("jpcap");
 	    PApplet.main(new String[] { "--present", "com.p2pbr.netviz.Net" + args[0] });
 	}
 }
