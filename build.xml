@@ -30,9 +30,9 @@
     </target>
     <target name="generateDB" depends="checkDB,downloadDB" unless="${db.present}">
       <echo>Generating Geolocation DB</echo>
-	  <gunzip src="util/hosts.sql.gz" />
+	  <gunzip src="util/hosts.sql.gz" dest="util/hosts.sql" />
 	  <exec executable="/bin/bash" output="sqlitehosts.sql">
-	    <arg value="mysql2sqlite.sh" />
+	    <arg value="util/mysql2sqlite.sh" />
 	    <arg value="util/hosts.sql" />
 	  </exec>
 	  <delete file="util/hosts.sql" />
@@ -40,6 +40,9 @@
 	    <arg value="hostip.sqlite3" />
 	  </exec>
 	  <delete file="sqlitehosts.sql" />
+	  <exec executable="sqlite3" input="util/countrylatlong.sql">
+	    <arg value="hostip.sqlite3" />
+	  </exec>
 	</target>
 
 	<target name="prepare" depends="generateDB">
