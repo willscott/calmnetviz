@@ -2,7 +2,7 @@ package com.p2pbr.netviz;
 
 import processing.core.*;
 
-import de.bezier.data.sql.*;
+import com.maxmind.geoip.*;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -16,7 +16,8 @@ import org.rsg.lib.Log;
 public class NetViz extends PApplet {
 	private static final long serialVersionUID = 9075470452122575298L;
 
-    SQLite db;
+    LookupService asnLookup;
+    LookupService geoLookup;
     boolean dbConnected = false;
     
     HashMap<String, Pin> pins = new HashMap<String, Pin>();
@@ -185,14 +186,14 @@ public class NetViz extends PApplet {
     
     public void setup() {
       // connect to the database of geolocation data
-      db = new SQLite(this, "hostip.sqlite3"); //open database file!
-      if (db.connect()) {
-        dbConnected = true;  
+      try {
+        asnLookup = new LookupService("GeoIPASNum.dat");
+        geoLookup = new LookupService("GeoLiteCity.dat");
+        dbConnected = true;
+      } catch(Exception e) {
+        dbConnected = false;
       }
-      else {
-        dbConnected = false; 
-      }
-            
+
       // load the map image
       mapImage = loadImage(mapFilename);
       
@@ -374,40 +375,25 @@ public class NetViz extends PApplet {
       if (!dbConnected) {
         return null; 
       }
-    
-      db.query("SELECT city as \"City\" FROM ip4_"+ip.octet1()+" WHERE b="+ip.octet2()+" AND c="+ip.octet3()+";");
-      String city = "NONE";
-      while (db.next()) {
-        city = db.getString("City"); 
+      Location loc = geoLookup.getLocation(ip.ip);
+      if (loc != null && loc.city != null) {
+          return loc.city;
+      } else {
+    	  return "NONE";
       }
-      if (!city.equals("NONE")) {
-        db.query("SELECT name as \"Name\" FROM cityByCountry WHERE city="+city);
-      }
-      String cityName = "NONE";
-      while (db.next()) {
-        cityName = db.getString("Name");
-      }
-      return cityName;
     }
+
     String getCountryByIP(IPAddress ip) {
       if (!dbConnected) {
         return null; 
       }
-    
-      db.query("SELECT country as \"Country\" FROM ip4_"+ip.octet1()+" WHERE b="+ip.octet2()+" AND c="+ip.octet3()+";");
-      String country = "NONE";
-      while (db.next()) {
-        country = db.getString("Country"); 
+
+      Location loc = geoLookup.getLocation(ip.ip);
+      if (loc != null && loc.countryName != null) {
+          return loc.countryName;
+      } else {
+    	  return "NONE";
       }
-      if (!country.equals("NONE")) {
-        db.query("SELECT name as \"Name\" FROM countries WHERE id="+country);
-      }
-      String countryName = "NONE";
-      while (db.next()) {
-        countryName = db.getString("Name");
-      }
-      return countryName;
-      
     }
     
     float[] getLatLonByIP(IPAddress ip) {
@@ -416,27 +402,11 @@ public class NetViz extends PApplet {
       if (!dbConnected) {
         return null;
       }
-      db.query("SELECT city as \"City\" FROM ip4_"+ip.octet1()+" WHERE b="+ip.octet2()+" AND c="+ip.octet3()+";");
-      String city = "NONE";
-      while (db.next()) {
-        city = db.getString("City"); 
-      }
-      if (!city.equals("NONE") && !city.equals("0")) {
-        db.query("SELECT lat AS \"Latitude\", lng AS \"Longitude\" FROM cityByCountry WHERE city="+city);  
-        while (db.next()) {
-          lat = db.getFloat("Latitude");
-          lng = db.getFloat("Longitude"); 
-        }
-      }
-      else {
-        String country = getCountryByIP(ip);
-        String q = "SELECT lat AS \"Latitude\", lng AS \"Longitude\" FROM countryLatLon WHERE name=\""+country+"\"";
-        //println(q);
-        db.query(q);
-        while (db.next()) {
-          lat = db.getFloat("Latitude");
-          lng = db.getFloat("Longitude"); 
-        }
+
+      Location loc = geoLookup.getLocation(ip.ip);
+      if (loc != null) {
+          lat = loc.latitude;
+          lng = loc.longitude;
       }
       
       float[] latlon = {lat, lng};

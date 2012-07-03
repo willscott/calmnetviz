@@ -1,5 +1,5 @@
-hostip.sqlite3
-util/hosts.sql.gz
+*.dat
+util/*.gz
 target
 .*
 lib/libjpcap.so

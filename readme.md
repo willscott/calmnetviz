@@ -17,7 +17,6 @@ appropriate carnivore jni binary.
 
 Prerequisites:
 
-* Sqlite3
 * Pcap
 * Java
 * Ant, Awk (for building)
