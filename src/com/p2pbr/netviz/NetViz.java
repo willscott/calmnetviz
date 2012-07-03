@@ -3,7 +3,6 @@ package com.p2pbr.netviz;
 import processing.core.*;
 
 import com.maxmind.geoip.*;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,10 +34,7 @@ public class NetViz extends PApplet {
     
     // CONSTANTS
     private final double WINDOW_SIZE = 15; // reference 'max'
-    private final double MAX_CNT = 125000; // 1Mbps in bytes/s.
-    private final double WINDOW_WEIGHT = 0.55;
     private final double MAX_BANDWIDTH = 100000000.0; 
-    private final int BINS = 5;
     private final int mapX = 0;
     private final int mapY = 0;
     private final int WIDTH = 1024;
@@ -61,6 +57,7 @@ public class NetViz extends PApplet {
     int lastBG[]  = new int[3];
     
     private class Pin {
+      @SuppressWarnings("unused")
       PApplet parent;
     
       public int state;
@@ -75,31 +72,24 @@ public class NetViz extends PApplet {
       private final int PULSE_MAX = 5;
       
       private int pulse = -1 * PULSE_MAX;
-      
-      public float lat;
-      public float lon;
-      
-      public String country;
-      public String city;
-     
+           
+      @SuppressWarnings("unused")
       public PImage mapImage;
       public float x;
       public float y; 
+      public int asn;
       
       public int bytes = 0;
       
       private int deadTimer = 1;
       private boolean pulseUp = true;
       
-      public Pin(PApplet p, PImage mapImage, float lat, float lon, String country, String city) {
+      public Pin(PApplet p, PImage mapImage, float lat, float lon, int asn) {
         this.parent = p;
         this.mapImage = mapImage;
         this.x = map(lon, -180, 180, mapX, mapX+mapImage.width);
         this.y = map(lat, 90, -90, mapY, mapY+mapImage.height);
-        this.lat = lat;
-        this.lon = lon;
-        this.country = country;
-        this.city = city;
+        this.asn = asn;
         
         this.state = STATE_ANIMATE;
         this.animation = 1;
@@ -126,15 +116,14 @@ public class NetViz extends PApplet {
         if (state == STATE_STATIC) {
           //println("static, rad="+rad);
           if (bytes > 0) {
-            int variation = (int)(parent.random(3));
             //println("bytes >0");
             fill(0x00, 0x00, 0x00, 0x00);
-            stroke(0xff, 0x00, 0xff);
+            stroke(0xff, (this.asn & 0xff00) >> 8, this.asn & 0xff);
             ellipse(this.x, this.y, rad, rad);
             return true;
           }
           else if (deadTimer <= DEAD_TIMER_CAP) {
-            stroke(0xff, 0xff, 0x00, 0xaa/deadTimer);  //no bytes left in window - display as transparent
+            stroke(0xff, (this.asn & 0xff00) >> 8, this.asn & 0xff, 0xaa/deadTimer);  //no bytes left in window - display as transparent
             fill(0x00, 0x00);
             ellipse(this.x, this.y, rad, rad);
             deadTimer++;
@@ -149,13 +138,13 @@ public class NetViz extends PApplet {
           // circle starts large, gets small
           // starts fully opaque, becomes transparent
           fill(0x00, 0x00, 0x00, 0x00);
-          stroke(0xff, 0xff, 0x00);
+          stroke(0xff, (this.asn & 0xff00) >> 8, this.asn & 0xff);
           ellipse(this.x, this.y, ANIMATION_RADIUS/this.animation, ANIMATION_RADIUS/this.animation);
       
           // circle starts small, gets to target size
           // starts transparent, becomes opaque
-          fill(0xff, 0xff, 0x00, 0x00);
-          stroke(0xff, 0xff, 0x00);
+          fill(0xff, (this.asn & 0xff00) >> 8, this.asn & 0xff, 0x00);
+          stroke(0xff, (this.asn & 0xff00) >> 8, this.asn & 0xff);
           ellipse(this.x, this.y, rad - (rad/this.animation), rad - (rad/this.animation));
       
           this.animation++;
@@ -198,11 +187,11 @@ public class NetViz extends PApplet {
       mapImage = loadImage(mapFilename);
       
       // setup pins for local, loopback, autoconfig, broadcast.
-      //public Pin(PImage mapImage, float lat, float lon, String country, String city) {
-      localPin = new Pin(this, mapImage, -105, -160, null, null);
-      broadcastPin = new Pin(this, mapImage, -105, -120, null, null);
-      loopbackPin = new Pin(this, mapImage, -105, -80, null, null);
-      autoconfigPin = new Pin(this, mapImage, -105, -40, null, null);
+      //public Pin(PImage mapImage, float lat, float lon, int asn) {
+      localPin = new Pin(this, mapImage, -105, -160, 0);
+      broadcastPin = new Pin(this, mapImage, -105, -120, 0);
+      loopbackPin = new Pin(this, mapImage, -105, -80, 0);
+      autoconfigPin = new Pin(this, mapImage, -105, -40, 0);
     
       // 
       size(WIDTH, HEIGHT);
@@ -288,7 +277,6 @@ public class NetViz extends PApplet {
     int[] getBackgroundColorFromTrafficSpeed() {
     
       int lastSecondBytes = sumList(inNow);
-      int lastWindowBytes = sumList(inWindow);
       
       prune();
       
@@ -297,7 +285,6 @@ public class NetViz extends PApplet {
       
       double logBandwidth = Math.log(MAX_BANDWIDTH);
       
-      float windowFraction = (float)lastSecondBytes/(lastWindowBytes/(float)WINDOW_SIZE);
       double absFraction = (double)logSecondBytes/logBandwidth;
       
       //System.out.println(logBandwidth +" "+ lastSecondBytes+" "+ + logSecondBytes +" "+ absFraction);
@@ -358,14 +345,11 @@ public class NetViz extends PApplet {
       } 
     }
     synchronized int sumList(LinkedList<pkt> l) {
-      Date nowTime = new Date();
       Iterator<pkt> iter = l.descendingIterator();
       int sum = 0;
-      int count = 0;
       while (iter.hasNext()) {
         pkt p = iter.next();
         sum += p.bytes;
-        count++;
       }
     //  System.out.println(count+" "+sum); 
       return sum;
@@ -412,6 +396,11 @@ public class NetViz extends PApplet {
       float[] latlon = {lat, lng};
       return latlon;
     }
+    
+    int getASNByIP(IPAddress ip) {
+    	return asnLookup.getID(ip.ip);
+    }
+    
     // Called each time a new packet arrives
     public synchronized void packetEvent(CarnivorePacket packet) {
       pkt pkt = new pkt();
@@ -431,13 +420,12 @@ public class NetViz extends PApplet {
           p = pins.get(packet.senderAddress.toString()); 
         }
         else {
-          String country = getCountryByIP(ip);
-          String city = getCityByIP(ip);
           float[] latlon = getLatLonByIP(ip);
           float lat = latlon[0];
           float lon = latlon[1];
+          int asn = getASNByIP(ip);
     
-          p = new Pin(this, mapImage, lat, lon, country, city);
+          p = new Pin(this, mapImage, lat, lon, asn);
           pins.put(ip.toString(), p);
         }
         p.addBytes(pkt.bytes);  
