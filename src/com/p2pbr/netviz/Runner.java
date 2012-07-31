@@ -10,6 +10,10 @@ public class Runner {
 			return;
 		}
 	    System.loadLibrary("jpcap");
-	    PApplet.main(new String[] { "--present", "com.p2pbr.netviz.Net" + args[0] });
+	    if (!args[0].contains("Net")) {
+		PApplet.main(new String[] { "--present", "com.p2pbr.netviz.Net" + args[0] });
+	    } else {
+		PApplet.main(new String[] { "--present", "com.p2pbr.netviz." + args[0] });
+	    }
 	}
 }
