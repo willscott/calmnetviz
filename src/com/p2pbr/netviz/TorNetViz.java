@@ -4,6 +4,8 @@ import processing.core.*;
 
 import com.maxmind.geoip.*;
 import java.util.*;
+import java.io.File;
+import java.io.FileFilter;
 
 public class TorNetViz extends PApplet {
 	private static final long serialVersionUID = 9075470452122575298L;
@@ -20,6 +22,9 @@ public class TorNetViz extends PApplet {
 	private final int WIDTH = 1024;
 	private final int HEIGHT = 600;
 	private final int FRAMERATE = 10;
+	private final int INPUT_ONE_DAY_IN_SECS = 20; // TODO: make configurable
+	private final String STARTING_INPUT_STRING = "2012-07-31_1"; // TODO: make configurable
+	private final String ENDING_INPUT_STRING = "2012-08-31_1"; // TODO: make configurable
 	
 	// Hookup to the MaxMind database.
 	LookupService geoLookup;
@@ -118,7 +123,7 @@ public class TorNetViz extends PApplet {
 			// [0] = ip, [1] = timestamp, [2] = response time, [3] = last known ip
 			
 			// Acquire the latitude and longitude.
-			float latlon = getLatLonByIP(pieces[0]);
+			float[] latlon = getLatLonByIP(pieces[0]);
 			
 			// Initialize drawing stuff from latlon.
 			this.parent = p;
@@ -133,7 +138,7 @@ public class TorNetViz extends PApplet {
 			if (response == -1) {
 				// Creates a string to be processed by the next Pin constructor.
 				String[] LKPin = {pieces[3], pieces[1], "-2", "-1"};
-				LastKnown = new Pin(LKPin);
+				LastKnown = new Pin(p, mapImage, LKPin);
 			} else {
 				LastKnown = null;
 			}
@@ -268,7 +273,7 @@ public class TorNetViz extends PApplet {
 		}
 		
 		private boolean ShouldAdvanceMonth() {
-			return (date > 31 && ( (month < 8 && month % 2 = 1) || (month >= 8 && month % 2 = 0) ))
+			return (date > 31 && ( (month < 8 && month % 2 == 1) || (month >= 8 && month % 2 == 0) ))
 						|| (date > 30 && (month == 4 || month == 6 || month == 9 || month == 11))
 						|| ((( date > 29 && year % 4 == 0 ) || ( date > 28 && year % 4 != 0 )) && month == 2);
 		}
@@ -351,7 +356,13 @@ public class TorNetViz extends PApplet {
 		for (int i = 0; i < vizFiles.length; i++) {
 			
 			// Create a new scanner.
-			Scanner scotty = new Scanner(vizFiles[i]);
+			Scanner scotty;
+			try {
+			    scotty = new Scanner(vizFiles[i]);
+			} catch(java.io.FileNotFoundException e) {
+			    e.printStackTrace();
+			    return;
+			}
 			
 			// Get the first line, held outside the loop.
 			String[] currPin = scotty.nextLine().split("\t");
@@ -364,7 +375,7 @@ public class TorNetViz extends PApplet {
 			while(keepRunning) {
 				
 				// Create a Pin from currPin, put it in the list.
-				pinJar.add(new Pin(p, mapImage, currPin));
+				pinJar.add(new Pin(this, mapImage, currPin));
 				
 				// Get the next line.
 				String[] nextPin = scotty.nextLine().split("\t");
@@ -372,7 +383,7 @@ public class TorNetViz extends PApplet {
 				// While currPin and nextPin have the same timestamp,
 				// Keep making pins and pushing them onto the list.
 				while (currPin[1].compareTo(nextPin[1]) == 0) {
-					pinJar.add(new Pin(p, mapImage, nextPin));
+					pinJar.add(new Pin(this, mapImage, nextPin));
 					
 					// There are no more lines to read:
 					if (!scotty.hasNextLine()) {
